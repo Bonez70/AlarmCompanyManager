@@ -1,0 +1,384 @@
+﻿<!-- Views/Customers/CustomerDetailsView.xaml -->
+<UserControl x:Class="AlarmCompanyManager.Views.Customers.CustomerDetailsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1200">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="16" Style="{StaticResource FadeInAnimation}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Style="{StaticResource SectionHeader}" Margin="0">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} Customer">
+                                <Binding Path="IsNewCustomer" Converter="{StaticResource BooleanToStringConverter}" ConverterParameter="New|Edit" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    <TextBlock Text="Enter customer information and contact details" 
+                               Style="{StaticResource FieldLabel}" Margin="0,4,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Style="{StaticResource SecondaryButton}" 
+                            Command="{Binding CancelEditCommand}"
+                            Margin="8,0"
+                            Visibility="{Binding CanEdit, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Cancel" Width="16" Height="16" Margin="0,0,8,0" />
+                            <TextBlock Text="Cancel" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource PrimaryButton}" 
+                            Command="{Binding SaveCustomerCommand}"
+                            Visibility="{Binding CanEdit, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="ContentSave" Width="16" Height="16" Margin="0,0,8,0" />
+                            <TextBlock Text="Save Customer" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource SecondaryButton}" 
+                            Command="{Binding EditCustomerCommand}"
+                            Visibility="{Binding CanEdit, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverted}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Pencil" Width="16" Height="16" Margin="0,0,8,0" />
+                            <TextBlock Text="Edit Customer" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Customer Form -->
+            <materialDesign:Card Grid.Row="1" materialDesign:ElevationAssist.Elevation="Dp2">
+                <TabControl Style="{StaticResource ApplicationTabControl}">
+
+                    <!-- Basic Information Tab -->
+                    <TabItem Header="Basic Information">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <!-- Customer Information Section -->
+                                <StackPanel Grid.Row="0" Margin="0,0,0,32">
+                                    <TextBlock Text="Customer Information" Style="{StaticResource SubSectionHeader}" />
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Company Name -->
+                                        <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                                 Text="{Binding CurrentCustomer.CompanyName, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="Company Name (Optional)"
+                                                 Style="{StaticResource ApplicationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="0,0,0,16" />
+
+                                        <!-- First Name -->
+                                        <TextBox Grid.Row="1" Grid.Column="0"
+                                                 Text="{Binding CurrentCustomer.FirstName, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="First Name *"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="0,0,16,16" />
+
+                                        <!-- Last Name -->
+                                        <TextBox Grid.Row="1" Grid.Column="1"
+                                                 Text="{Binding CurrentCustomer.LastName, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="Last Name *"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="16,0,0,16" />
+
+                                        <!-- Customer Type -->
+                                        <ComboBox Grid.Row="2" Grid.Column="0"
+                                                  ItemsSource="{Binding CustomerTypes}"
+                                                  SelectedValue="{Binding CurrentCustomer.CustomerTypeId}"
+                                                  SelectedValuePath="CustomerTypeId"
+                                                  DisplayMemberPath="TypeName"
+                                                  materialDesign:HintAssist.Hint="Customer Type *"
+                                                  Style="{StaticResource ApplicationComboBox}"
+                                                  IsEnabled="{Binding CanEdit}"
+                                                  Margin="0,0,16,16" />
+
+                                        <!-- Linked Customer -->
+                                        <ComboBox Grid.Row="2" Grid.Column="1"
+                                                  ItemsSource="{Binding Customers}"
+                                                  SelectedValue="{Binding CurrentCustomer.LinkedCustomerId}"
+                                                  SelectedValuePath="CustomerId"
+                                                  materialDesign:HintAssist.Hint="Linked Customer (Optional)"
+                                                  Style="{StaticResource ApplicationComboBox}"
+                                                  IsEnabled="{Binding CanEdit}"
+                                                  Margin="16,0,0,16">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <Run Text="{Binding FirstName}" />
+                                                        <Run Text=" " />
+                                                        <Run Text="{Binding LastName}" />
+                                                        <Run Text=" - " />
+                                                        <Run Text="{Binding CompanyName}" />
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Address Information Section -->
+                                <StackPanel Grid.Row="1" Margin="0,0,0,32">
+                                    <TextBlock Text="Address Information" Style="{StaticResource SubSectionHeader}" />
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Street Address -->
+                                        <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4"
+                                                 Text="{Binding CurrentCustomer.Street, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="Street Address *"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="0,0,0,16" />
+
+                                        <!-- City -->
+                                        <TextBox Grid.Row="1" Grid.Column="0"
+                                                 Text="{Binding CurrentCustomer.City, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="City *"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="0,0,16,16" />
+
+                                        <!-- State -->
+                                        <TextBox Grid.Row="1" Grid.Column="1"
+                                                 Text="{Binding CurrentCustomer.State, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="State *"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="16,0,16,16"
+                                                 MaxLength="2" />
+
+                                        <!-- ZIP Code -->
+                                        <TextBox Grid.Row="1" Grid.Column="2"
+                                                 Text="{Binding CurrentCustomer.ZipCode, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="ZIP Code *"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="16,0,16,16"
+                                                 Width="120" />
+
+                                        <!-- County -->
+                                        <TextBox Grid.Row="1" Grid.Column="3"
+                                                 Text="{Binding CurrentCustomer.County, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="County"
+                                                 Style="{StaticResource ApplicationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="16,0,0,16"
+                                                 Width="120" />
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Contact Information Section -->
+                                <StackPanel Grid.Row="2">
+                                    <TextBlock Text="Contact Information" Style="{StaticResource SubSectionHeader}" />
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Email Address -->
+                                        <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                                 Text="{Binding CurrentCustomer.EmailAddress, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="Email Address"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="0,0,0,16" />
+
+                                        <!-- Home Phone -->
+                                        <TextBox Grid.Row="1" Grid.Column="0"
+                                                 Text="{Binding CurrentCustomer.HomePhone, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="Home Phone"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="0,0,16,16" />
+
+                                        <!-- Business Phone -->
+                                        <TextBox Grid.Row="1" Grid.Column="1"
+                                                 Text="{Binding CurrentCustomer.BusinessPhone, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="Business Phone"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="16,0,0,16" />
+
+                                        <!-- Cell Phone -->
+                                        <TextBox Grid.Row="2" Grid.Column="0"
+                                                 Text="{Binding CurrentCustomer.CellPhone, UpdateSourceTrigger=PropertyChanged}"
+                                                 materialDesign:HintAssist.Hint="Cell Phone"
+                                                 Style="{StaticResource ValidationTextBox}"
+                                                 IsEnabled="{Binding CanEdit}"
+                                                 Margin="0,0,16,0" />
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- Contacts Tab -->
+                    <TabItem Header="Contacts">
+                        <Grid Margin="24">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Contacts Header -->
+                            <Grid Grid.Row="0" Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="Contact Management" 
+                                           Style="{StaticResource SubSectionHeader}" Margin="0" />
+
+                                <Button Grid.Column="1" Style="{StaticResource PrimaryButton}"
+                                        Visibility="{Binding CanEdit, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Plus" Width="16" Height="16" Margin="0,0,8,0" />
+                                        <TextBlock Text="Add Contact" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <!-- Contacts List -->
+                            <TextBlock Grid.Row="1" Text="Contact management will be implemented here"
+                                       Style="{StaticResource EmptyStateMessage}" />
+                        </Grid>
+                    </TabItem>
+
+                    <!-- Security Systems Tab -->
+                    <TabItem Header="Security Systems">
+                        <Grid Margin="24">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Security Systems Header -->
+                            <Grid Grid.Row="0" Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="Security Systems" 
+                                           Style="{StaticResource SubSectionHeader}" Margin="0" />
+
+                                <Button Grid.Column="1" Style="{StaticResource PrimaryButton}"
+                                        Visibility="{Binding CanEdit, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Plus" Width="16" Height="16" Margin="0,0,8,0" />
+                                        <TextBlock Text="Add Security System" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <!-- Security Systems List -->
+                            <TextBlock Grid.Row="1" Text="Security system management will be implemented here"
+                                       Style="{StaticResource EmptyStateMessage}" />
+                        </Grid>
+                    </TabItem>
+
+                    <!-- Work Orders Tab -->
+                    <TabItem Header="Work Orders">
+                        <Grid Margin="24">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Work Orders Header -->
+                            <Grid Grid.Row="0" Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="Customer Work Orders" 
+                                           Style="{StaticResource SubSectionHeader}" Margin="0" />
+
+                                <Button Grid.Column="1" Style="{StaticResource PrimaryButton}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Plus" Width="16" Height="16" Margin="0,0,8,0" />
+                                        <TextBlock Text="Create Work Order" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <!-- Work Orders List -->
+                            <TextBlock Grid.Row="1" Text="Customer work orders will be displayed here"
+                                       Style="{StaticResource EmptyStateMessage}" />
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </materialDesign:Card>
+
+            <!-- Loading Overlay -->
+            <Grid Grid.Row="1" Style="{StaticResource LoadingOverlay}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                 IsIndeterminate="True"
+                                 Width="48" Height="48" />
+                    <TextBlock Text="{Binding BusyMessage}" 
+                               Margin="0,16,0,0"
+                               HorizontalAlignment="Center"
+                               FontSize="14" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

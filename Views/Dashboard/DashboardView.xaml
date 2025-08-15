@@ -1,0 +1,538 @@
+﻿<!-- Views/Dashboard/DashboardView.xaml -->
+<UserControl x:Class="AlarmCompanyManager.Views.Dashboard.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1200">
+
+    <UserControl.Resources>
+        <!-- Value Converters -->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <!-- Data Templates -->
+        <DataTemplate x:Key="WorkOrderItemTemplate">
+            <materialDesign:Card Margin="4" Padding="12" 
+                                 materialDesign:ElevationAssist.Elevation="Dp1"
+                                 Cursor="Hand">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Status Indicator -->
+                    <Border Grid.Column="0" Width="4" Height="40" 
+                            Background="{Binding StatusId, Converter={StaticResource StatusToColorConverter}}"
+                            CornerRadius="2" Margin="0,0,12,0" />
+
+                    <!-- Work Order Info -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding WorkOrderNumber}" 
+                                   FontWeight="Medium" FontSize="14" />
+                        <TextBlock Text="{Binding Description}" 
+                                   FontSize="12" Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock FontSize="11" Foreground="{DynamicResource MaterialDesignBodyLight}">
+                            <Run Text="Customer: " />
+                            <Run Text="{Binding Customer.FirstName}" />
+                            <Run Text=" " />
+                            <Run Text="{Binding Customer.LastName}" />
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Date -->
+                    <TextBlock Grid.Column="2" 
+                               Text="{Binding ScheduledDate, StringFormat='{}{0:MM/dd}'}" 
+                               FontSize="12" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MaterialDesignBodyLight}" />
+                </Grid>
+            </materialDesign:Card>
+        </DataTemplate>
+
+        <DataTemplate x:Key="CustomerItemTemplate">
+            <materialDesign:Card Margin="4" Padding="12" 
+                                 materialDesign:ElevationAssist.Elevation="Dp1"
+                                 Cursor="Hand">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Customer Type Indicator -->
+                    <Ellipse Grid.Column="0" Width="12" Height="12" 
+                             Fill="{Binding CustomerTypeId, Converter={StaticResource CustomerTypeToColorConverter}}"
+                             Margin="0,0,12,0" VerticalAlignment="Center" />
+
+                    <!-- Customer Info -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock FontWeight="Medium" FontSize="14">
+                            <Run Text="{Binding FirstName}" />
+                            <Run Text=" " />
+                            <Run Text="{Binding LastName}" />
+                        </TextBlock>
+                        <TextBlock Text="{Binding CompanyName}" 
+                                   FontSize="12" Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                   Visibility="{Binding CompanyName, Converter={StaticResource StringToVisibilityConverter}}" />
+                        <TextBlock FontSize="11" Foreground="{DynamicResource MaterialDesignBodyLight}">
+                            <Run Text="{Binding City}" />
+                            <Run Text=", " />
+                            <Run Text="{Binding State}" />
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Created Date -->
+                    <TextBlock Grid.Column="2" 
+                               Text="{Binding CreatedDate, StringFormat='{}{0:MM/dd}'}" 
+                               FontSize="12" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MaterialDesignBodyLight}" />
+                </Grid>
+            </materialDesign:Card>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="16" Style="{StaticResource FadeInAnimation}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Dashboard" Style="{StaticResource SectionHeader}" Margin="0" />
+                    <TextBlock Text="Overview of your alarm company operations" 
+                               Style="{StaticResource FieldLabel}" Margin="0,4,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Style="{StaticResource SecondaryButton}" 
+                            Command="{Binding RefreshCommand}"
+                            Margin="8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Refresh" Width="16" Height="16" Margin="0,0,8,0" />
+                            <TextBlock Text="Refresh" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Key Metrics -->
+            <Grid Grid.Row="1" Margin="0,0,0,24">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- First Row of Metrics -->
+                <UniformGrid Grid.Row="0" Rows="1" Columns="4" Margin="0,0,0,16">
+                    <!-- Total Customers -->
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Command="{Binding ViewAllCustomersCommand}"
+                            Margin="0,0,8,0" Padding="0"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch">
+                        <materialDesign:Card Style="{StaticResource MetricCard}" Margin="0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <materialDesign:PackIcon Grid.Row="0" Kind="AccountGroup" 
+                                                         Width="32" Height="32" 
+                                                         HorizontalAlignment="Center"
+                                                         Foreground="{StaticResource PrimaryBrush}" 
+                                                         Margin="0,8" />
+
+                                <TextBlock Grid.Row="1" Text="{Binding TotalCustomers}" 
+                                           Style="{StaticResource MetricValue}" />
+
+                                <TextBlock Grid.Row="2" Text="Total Customers" 
+                                           Style="{StaticResource MetricLabel}" />
+                            </Grid>
+                        </materialDesign:Card>
+                    </Button>
+
+                    <!-- Total Work Orders -->
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Command="{Binding ViewAllWorkOrdersCommand}"
+                            Margin="8,0" Padding="0"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch">
+                        <materialDesign:Card Style="{StaticResource MetricCard}" Margin="0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <materialDesign:PackIcon Grid.Row="0" Kind="ClipboardList" 
+                                                         Width="32" Height="32" 
+                                                         HorizontalAlignment="Center"
+                                                         Foreground="{StaticResource SecondaryBrush}" 
+                                                         Margin="0,8" />
+
+                                <TextBlock Grid.Row="1" Text="{Binding TotalWorkOrders}" 
+                                           Style="{StaticResource MetricValue}" />
+
+                                <TextBlock Grid.Row="2" Text="Total Work Orders" 
+                                           Style="{StaticResource MetricLabel}" />
+                            </Grid>
+                        </materialDesign:Card>
+                    </Button>
+
+                    <!-- Pending Work Orders -->
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Command="{Binding ViewAllWorkOrdersCommand}"
+                            Margin="8,0" Padding="0"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch">
+                        <materialDesign:Card Style="{StaticResource MetricCard}" Margin="0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <materialDesign:PackIcon Grid.Row="0" Kind="ClockOutline" 
+                                                         Width="32" Height="32" 
+                                                         HorizontalAlignment="Center"
+                                                         Foreground="{StaticResource WarningBrush}" 
+                                                         Margin="0,8" />
+
+                                <TextBlock Grid.Row="1" Text="{Binding PendingWorkOrders}" 
+                                           Style="{StaticResource MetricValue}" />
+
+                                <TextBlock Grid.Row="2" Text="Pending Work Orders" 
+                                           Style="{StaticResource MetricLabel}" />
+                            </Grid>
+                        </materialDesign:Card>
+                    </Button>
+
+                    <!-- Overdue Work Orders -->
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Command="{Binding ViewAllWorkOrdersCommand}"
+                            Margin="8,0,0,0" Padding="0"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch">
+                        <materialDesign:Card Style="{StaticResource MetricCard}" Margin="0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <materialDesign:PackIcon Grid.Row="0" Kind="AlertCircle" 
+                                                         Width="32" Height="32" 
+                                                         HorizontalAlignment="Center"
+                                                         Foreground="{StaticResource DangerBrush}" 
+                                                         Margin="0,8" />
+
+                                <TextBlock Grid.Row="1" Text="{Binding OverdueWorkOrders}" 
+                                           Style="{StaticResource MetricValue}" />
+
+                                <TextBlock Grid.Row="2" Text="Overdue Work Orders" 
+                                           Style="{StaticResource MetricLabel}" />
+                            </Grid>
+                        </materialDesign:Card>
+                    </Button>
+                </UniformGrid>
+
+                <!-- Second Row of Metrics -->
+                <UniformGrid Grid.Row="1" Rows="1" Columns="4">
+                    <!-- Completed This Month -->
+                    <materialDesign:Card Style="{StaticResource MetricCard}" Margin="0,0,8,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <materialDesign:PackIcon Grid.Row="0" Kind="CheckCircle" 
+                                                     Width="32" Height="32" 
+                                                     HorizontalAlignment="Center"
+                                                     Foreground="{StaticResource SuccessBrush}" 
+                                                     Margin="0,8" />
+
+                            <TextBlock Grid.Row="1" Text="{Binding CompletedThisMonth}" 
+                                       Style="{StaticResource MetricValue}" />
+
+                            <TextBlock Grid.Row="2" Text="Completed This Month" 
+                                       Style="{StaticResource MetricLabel}" />
+                        </Grid>
+                    </materialDesign:Card>
+
+                    <!-- Active Security Systems -->
+                    <materialDesign:Card Style="{StaticResource MetricCard}" Margin="8,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <materialDesign:PackIcon Grid.Row="0" Kind="Shield" 
+                                                     Width="32" Height="32" 
+                                                     HorizontalAlignment="Center"
+                                                     Foreground="{StaticResource InfoBrush}" 
+                                                     Margin="0,8" />
+
+                            <TextBlock Grid.Row="1" Text="{Binding ActiveSecuritySystems}" 
+                                       Style="{StaticResource MetricValue}" />
+
+                            <TextBlock Grid.Row="2" Text="Active Security Systems" 
+                                       Style="{StaticResource MetricLabel}" />
+                        </Grid>
+                    </materialDesign:Card>
+
+                    <!-- Monthly Revenue -->
+                    <materialDesign:Card Style="{StaticResource MetricCard}" Margin="8,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <materialDesign:PackIcon Grid.Row="0" Kind="CurrencyUsd" 
+                                                     Width="32" Height="32" 
+                                                     HorizontalAlignment="Center"
+                                                     Foreground="{StaticResource AccentBrush}" 
+                                                     Margin="0,8" />
+
+                            <TextBlock Grid.Row="1" Text="{Binding MonthlyRevenue, StringFormat=C0}" 
+                                       Style="{StaticResource MetricValue}" FontSize="24" />
+
+                            <TextBlock Grid.Row="2" Text="Monthly Revenue" 
+                                       Style="{StaticResource MetricLabel}" />
+                        </Grid>
+                    </materialDesign:Card>
+
+                    <!-- New Customers This Month -->
+                    <materialDesign:Card Style="{StaticResource MetricCard}" Margin="8,0,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <materialDesign:PackIcon Grid.Row="0" Kind="AccountPlus" 
+                                                     Width="32" Height="32" 
+                                                     HorizontalAlignment="Center"
+                                                     Foreground="{StaticResource PrimaryBrush}" 
+                                                     Margin="0,8" />
+
+                            <TextBlock Grid.Row="1" Text="{Binding NewCustomersThisMonth}" 
+                                       Style="{StaticResource MetricValue}" />
+
+                            <TextBlock Grid.Row="2" Text="New Customers This Month" 
+                                       Style="{StaticResource MetricLabel}" />
+                        </Grid>
+                    </materialDesign:Card>
+                </UniformGrid>
+            </Grid>
+
+            <!-- Quick Actions -->
+            <Grid Grid.Row="2" Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Style="{StaticResource PrimaryButton}" 
+                        Command="{Binding CreateWorkOrderCommand}"
+                        Height="48" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Plus" Width="20" Height="20" Margin="0,0,8,0" />
+                        <TextBlock Text="Create Work Order" />
+                    </StackPanel>
+                </Button>
+
+                <Button Grid.Column="1" Style="{StaticResource SecondaryButton}" 
+                        Command="{Binding AddCustomerCommand}"
+                        Height="48" Margin="8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="AccountPlus" Width="20" Height="20" Margin="0,0,8,0" />
+                        <TextBlock Text="Add Customer" />
+                    </StackPanel>
+                </Button>
+
+                <Button Grid.Column="2" Style="{StaticResource SecondaryButton}" 
+                        Command="{Binding ViewAllWorkOrdersCommand}"
+                        Height="48" Margin="8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Calendar" Width="20" Height="20" Margin="0,0,8,0" />
+                        <TextBlock Text="View Schedule" />
+                    </StackPanel>
+                </Button>
+
+                <Button Grid.Column="3" Style="{StaticResource SecondaryButton}" 
+                        Command="{Binding ViewAllCustomersCommand}"
+                        Height="48" Margin="8,0,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="FileChart" Width="20" Height="20" Margin="0,0,8,0" />
+                        <TextBlock Text="View Reports" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Recent Activity -->
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Recent Work Orders -->
+                <materialDesign:Card Grid.Column="0" Style="{StaticResource ApplicationCard}" 
+                                     Margin="0,0,8,0" VerticalAlignment="Stretch">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Recent Work Orders" 
+                                       Style="{StaticResource SubSectionHeader}" Margin="0" />
+
+                            <Button Grid.Column="1" Style="{StaticResource MaterialDesignIconButton}"
+                                    Command="{Binding ViewAllWorkOrdersCommand}"
+                                    Width="32" Height="32">
+                                <materialDesign:PackIcon Kind="ArrowRight" Width="16" Height="16" />
+                            </Button>
+                        </Grid>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding RecentWorkOrders}"
+                                          ItemTemplate="{StaticResource WorkOrderItemTemplate}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <TextBlock Grid.Row="1" Text="No recent work orders" 
+                                   Style="{StaticResource EmptyStateMessage}"
+                                   Visibility="{Binding RecentWorkOrders.Count, Converter={StaticResource CountToVisibilityConverter}}" />
+                    </Grid>
+                </materialDesign:Card>
+
+                <!-- Upcoming Work Orders -->
+                <materialDesign:Card Grid.Column="1" Style="{StaticResource ApplicationCard}" 
+                                     Margin="8,0" VerticalAlignment="Stretch">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Upcoming Work Orders" 
+                                       Style="{StaticResource SubSectionHeader}" Margin="0" />
+
+                            <Button Grid.Column="1" Style="{StaticResource MaterialDesignIconButton}"
+                                    Command="{Binding ViewAllWorkOrdersCommand}"
+                                    Width="32" Height="32">
+                                <materialDesign:PackIcon Kind="ArrowRight" Width="16" Height="16" />
+                            </Button>
+                        </Grid>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding UpcomingWorkOrders}"
+                                          ItemTemplate="{StaticResource WorkOrderItemTemplate}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <TextBlock Grid.Row="1" Text="No upcoming work orders" 
+                                   Style="{StaticResource EmptyStateMessage}"
+                                   Visibility="{Binding UpcomingWorkOrders.Count, Converter={StaticResource CountToVisibilityConverter}}" />
+                    </Grid>
+                </materialDesign:Card>
+
+                <!-- Recent Customers -->
+                <materialDesign:Card Grid.Column="2" Style="{StaticResource ApplicationCard}" 
+                                     Margin="8,0,0,0" VerticalAlignment="Stretch">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Recent Customers" 
+                                       Style="{StaticResource SubSectionHeader}" Margin="0" />
+
+                            <Button Grid.Column="1" Style="{StaticResource MaterialDesignIconButton}"
+                                    Command="{Binding ViewAllCustomersCommand}"
+                                    Width="32" Height="32">
+                                <materialDesign:PackIcon Kind="ArrowRight" Width="16" Height="16" />
+                            </Button>
+                        </Grid>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding RecentCustomers}"
+                                          ItemTemplate="{StaticResource CustomerItemTemplate}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <TextBlock Grid.Row="1" Text="No recent customers" 
+                                   Style="{StaticResource EmptyStateMessage}"
+                                   Visibility="{Binding RecentCustomers.Count, Converter={StaticResource CountToVisibilityConverter}}" />
+                    </Grid>
+                </materialDesign:Card>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

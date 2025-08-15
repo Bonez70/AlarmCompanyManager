@@ -1,0 +1,242 @@
+﻿<!-- Views/Customers/CustomerListView.xaml -->
+<UserControl x:Class="AlarmCompanyManager.Views.Customers.CustomerListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1200">
+
+    <Grid Margin="16" Style="{StaticResource FadeInAnimation}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Customers" Style="{StaticResource SectionHeader}" Margin="0" />
+                <TextBlock Text="Manage your customer database" 
+                           Style="{StaticResource FieldLabel}" Margin="0,4,0,0" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Style="{StaticResource SecondaryButton}" 
+                        Command="{Binding RefreshCommand}"
+                        Margin="8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Refresh" Width="16" Height="16" Margin="0,0,8,0" />
+                        <TextBlock Text="Refresh" />
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource PrimaryButton}" 
+                        Command="{Binding AddCustomerCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Plus" Width="16" Height="16" Margin="0,0,8,0" />
+                        <TextBlock Text="Add Customer" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Search and Filters -->
+        <materialDesign:Card Grid.Row="1" Padding="16" Margin="0,0,0,16"
+                             materialDesign:ElevationAssist.Elevation="Dp1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Search Box -->
+                <TextBox Grid.Column="0" 
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Search customers by name, company, address, phone, or email..."
+                         materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                         materialDesign:TextFieldAssist.LeadingIcon="Search"
+                         Style="{StaticResource ApplicationTextBox}"
+                         FontSize="14" Margin="0,0,16,0" />
+
+                <!-- Search Button -->
+                <Button Grid.Column="1" Style="{StaticResource PrimaryButton}"
+                        Command="{Binding SearchCommand}"
+                        CommandParameter="{Binding SearchText}"
+                        Margin="8,0">
+                    <TextBlock Text="Search" />
+                </Button>
+
+                <!-- Clear Button -->
+                <Button Grid.Column="2" Style="{StaticResource SecondaryButton}"
+                        Command="{Binding LoadCustomersCommand}">
+                    <TextBlock Text="Clear" />
+                </Button>
+            </Grid>
+        </materialDesign:Card>
+
+        <!-- Customer List -->
+        <materialDesign:Card Grid.Row="2" materialDesign:ElevationAssist.Elevation="Dp2">
+            <Grid>
+                <DataGrid ItemsSource="{Binding Customers}"
+                          SelectedItem="{Binding SelectedCustomer}"
+                          Style="{StaticResource ApplicationDataGrid}"
+                          MouseDoubleClick="DataGrid_MouseDoubleClick">
+
+                    <DataGrid.Columns>
+                        <!-- Customer Type Indicator -->
+                        <DataGridTemplateColumn Header="" Width="40" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Ellipse Width="12" Height="12" 
+                                             Fill="{Binding CustomerTypeId, Converter={StaticResource CustomerTypeToColorConverter}}"
+                                             HorizontalAlignment="Center" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Customer Name -->
+                        <DataGridTemplateColumn Header="Customer" Width="*" MinWidth="200">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock FontWeight="Medium">
+                                            <Run Text="{Binding FirstName}" />
+                                            <Run Text=" " />
+                                            <Run Text="{Binding LastName}" />
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding CompanyName}" 
+                                                   FontSize="12" 
+                                                   Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                   Visibility="{Binding CompanyName, Converter={StaticResource StringToVisibilityConverter}}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Customer Type -->
+                        <DataGridTextColumn Header="Type" 
+                                            Binding="{Binding CustomerType.TypeName}" 
+                                            Width="120" />
+
+                        <!-- Address -->
+                        <DataGridTemplateColumn Header="Address" Width="250">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Street}" />
+                                        <TextBlock FontSize="12" 
+                                                   Foreground="{DynamicResource MaterialDesignBodyLight}">
+                                            <Run Text="{Binding City}" />
+                                            <Run Text=", " />
+                                            <Run Text="{Binding State}" />
+                                            <Run Text=" " />
+                                            <Run Text="{Binding ZipCode}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Phone -->
+                        <DataGridTemplateColumn Header="Phone" Width="140">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding HomePhone, Converter={StaticResource PhoneFormatConverter}}" 
+                                                   Visibility="{Binding HomePhone, Converter={StaticResource StringToVisibilityConverter}}" />
+                                        <TextBlock Text="{Binding CellPhone, Converter={StaticResource PhoneFormatConverter}}" 
+                                                   FontSize="12" 
+                                                   Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                   Visibility="{Binding CellPhone, Converter={StaticResource StringToVisibilityConverter}}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Email -->
+                        <DataGridTextColumn Header="Email" 
+                                            Binding="{Binding EmailAddress}" 
+                                            Width="200" />
+
+                        <!-- Created Date -->
+                        <DataGridTextColumn Header="Created" 
+                                            Binding="{Binding CreatedDate, StringFormat='{}{0:MM/dd/yyyy}'}" 
+                                            Width="100" />
+
+                        <!-- Actions -->
+                        <DataGridTemplateColumn Header="Actions" Width="120" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                                Command="{Binding DataContext.ViewCustomerDetailsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip="View Details"
+                                                Width="32" Height="32" Margin="2">
+                                            <materialDesign:PackIcon Kind="Eye" Width="16" Height="16" />
+                                        </Button>
+
+                                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                                Command="{Binding DataContext.EditCustomerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                ToolTip="Edit Customer"
+                                                Width="32" Height="32" Margin="2">
+                                            <materialDesign:PackIcon Kind="Pencil" Width="16" Height="16" />
+                                        </Button>
+
+                                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                                Command="{Binding DataContext.DeleteCustomerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                ToolTip="Delete Customer"
+                                                Width="32" Height="32" Margin="2"
+                                                Foreground="{StaticResource DangerBrush}">
+                                            <materialDesign:PackIcon Kind="Delete" Width="16" Height="16" />
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Empty State -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Visibility="{Binding Customers.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                    <materialDesign:PackIcon Kind="AccountGroup" Width="64" Height="64" 
+                                             Foreground="{DynamicResource MaterialDesignBodyLight}" 
+                                             HorizontalAlignment="Center" Margin="0,0,0,16" />
+                    <TextBlock Text="No customers found" 
+                               Style="{StaticResource EmptyStateMessage}" />
+                    <Button Style="{StaticResource PrimaryButton}" 
+                            Command="{Binding AddCustomerCommand}"
+                            Margin="0,16,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Plus" Width="16" Height="16" Margin="0,0,8,0" />
+                            <TextBlock Text="Add First Customer" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Loading Overlay -->
+                <Grid Style="{StaticResource LoadingOverlay}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                     IsIndeterminate="True"
+                                     Width="48" Height="48" />
+                        <TextBlock Text="{Binding BusyMessage}" 
+                                   Margin="0,16,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="14" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl>

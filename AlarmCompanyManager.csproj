@@ -22,4 +22,9 @@
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Settings\" />
+    <Folder Include="Views\Workorders\" />
+  </ItemGroup>
+
 </Project>
